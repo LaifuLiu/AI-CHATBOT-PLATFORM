@@ -19,11 +19,15 @@ jobs:
         python-version: '3.14'
         cache: 'pip'
 
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5  # It's a best practice to pin to a specific version [citation:2][citation:4]
+      with:
+        # Pin a specific version for reproducibility [citation:2]
+        # Enable caching to speed up workflows [citation:1][citation:6]
+        enable-cache: true
+
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r ./backend/requirements.txt
-        pip install ruff black
+      run: uv sync --locked # Now uv is available [citation:4]
 
     - name: Lint with Ruff
       run: |

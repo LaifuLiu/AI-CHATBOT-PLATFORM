@@ -16,12 +16,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.14
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.14'
-        cache: 'pip'
-
     - name: Install uv
       uses: astral-sh/setup-uv@v5  # It's a best practice to pin to a specific version [citation:2][citation:4]
       with:

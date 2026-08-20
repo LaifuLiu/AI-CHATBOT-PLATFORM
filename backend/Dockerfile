@@ -37,4 +37,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 # Command to run your application
 # CHANGE THIS: Replace with your app's entry point
-CMD ["python", "-m", "src/ai_chatbot/main:app"]
+CMD ["uvicorn", "src/ai_chatbot/main:app", "--host", "0.0.0.0", "--port", "8000"]

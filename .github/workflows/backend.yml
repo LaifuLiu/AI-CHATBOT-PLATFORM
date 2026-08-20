@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# Permission for GHCR
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -31,6 +36,46 @@ jobs:
         uv run ruff check . --fix
         uv run black .
 
-    # - name: Test with pytest
-    #   run: |
-    #     pytest
+  # NEW: CD job - Build and push Docker image to GHCR
+  build-and-push:
+    runs-on: ubuntu-latest
+    # Only run this job if the tests passed
+    needs: build-and-test
+    # Only run on pushes to main (not pull requests)
+    if: github.ref == 'refs/heads/main'
+    # Note: working-directory not needed here since we're building the whole repo
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+        tags: |
+          type=ref,event=branch
+          type=semver,pattern={{version}}
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .  # Build from the root of the repository
+        file: ./backend/Dockerfile  # Specify where your Dockerfile is
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

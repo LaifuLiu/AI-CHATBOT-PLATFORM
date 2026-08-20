@@ -31,9 +31,11 @@ messages = []
 class ChatRequest(BaseModel):
     message: str
 
+
 @app.get("/")
 def root():
     return {"message": "Welcome to the AI Chatbot API"}
+
 
 @app.post("/chat")
 def chat(request: ChatRequest):
